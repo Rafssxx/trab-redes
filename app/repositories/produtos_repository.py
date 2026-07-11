@@ -6,7 +6,15 @@ from app.database import obter_conexao
 from app.models.produto import Produto
 
 
-CAMPOS_ATUALIZAVEIS = ("nome", "categoria", "preco", "estoque", "descricao")
+CAMPOS_ATUALIZAVEIS = (
+    "nome",
+    "categoria",
+    "preco",
+    "estoque",
+    "descricao",
+    "imagem_url",
+    "avaliacao",
+)
 
 
 def _mapear_produto(linha) -> Produto:
@@ -17,8 +25,17 @@ def criar_produto(produto: Produto) -> Produto:
     with obter_conexao() as conexao:
         conexao.execute(
             """
-            INSERT INTO produtos (id, nome, categoria, preco, estoque, descricao)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO produtos (
+                id,
+                nome,
+                categoria,
+                preco,
+                estoque,
+                descricao,
+                imagem_url,
+                avaliacao
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 produto.id,
@@ -27,6 +44,8 @@ def criar_produto(produto: Produto) -> Produto:
                 produto.preco,
                 produto.estoque,
                 produto.descricao,
+                produto.imagem_url,
+                produto.avaliacao,
             ),
         )
     return produto
@@ -37,7 +56,7 @@ def listar_produtos(categoria: Optional[str] = None) -> List[Produto]:
         if categoria:
             linhas = conexao.execute(
                 """
-                SELECT id, nome, categoria, preco, estoque, descricao
+                SELECT id, nome, categoria, preco, estoque, descricao, imagem_url, avaliacao
                 FROM produtos
                 WHERE LOWER(categoria) = LOWER(?)
                 ORDER BY nome
@@ -47,7 +66,7 @@ def listar_produtos(categoria: Optional[str] = None) -> List[Produto]:
         else:
             linhas = conexao.execute(
                 """
-                SELECT id, nome, categoria, preco, estoque, descricao
+                SELECT id, nome, categoria, preco, estoque, descricao, imagem_url, avaliacao
                 FROM produtos
                 ORDER BY nome
                 """
@@ -60,7 +79,7 @@ def obter_produto(produto_id: str) -> Optional[Produto]:
     with obter_conexao() as conexao:
         linha = conexao.execute(
             """
-            SELECT id, nome, categoria, preco, estoque, descricao
+            SELECT id, nome, categoria, preco, estoque, descricao, imagem_url, avaliacao
             FROM produtos
             WHERE id = ?
             """,

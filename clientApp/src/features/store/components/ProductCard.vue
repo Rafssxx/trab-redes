@@ -17,7 +17,16 @@ const currencyFormatter = new Intl.NumberFormat('pt-BR', {
 
 <template>
   <article class="product-card">
-    <img class="product-image" :src="product.imageUrl" :alt="product.name" loading="lazy" />
+    <img
+      v-if="product.imageUrl"
+      class="product-image"
+      :src="product.imageUrl"
+      :alt="product.name"
+      loading="lazy"
+    />
+    <div v-else class="product-image product-image-placeholder" aria-hidden="true">
+      {{ product.category }}
+    </div>
 
     <div class="product-content">
       <div>
@@ -55,6 +64,15 @@ const currencyFormatter = new Intl.NumberFormat('pt-BR', {
   aspect-ratio: 4 / 3;
   object-fit: cover;
   background: #eef0f4;
+}
+
+.product-image-placeholder {
+  display: grid;
+  place-items: center;
+  color: #5b6475;
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-transform: uppercase;
 }
 
 .product-content {

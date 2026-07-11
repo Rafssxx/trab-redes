@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import CartDrawer from './components/CartDrawer.vue'
 import LoginPanel from './components/LoginPanel.vue'
 import ProductCard from './components/ProductCard.vue'
@@ -7,8 +7,8 @@ import ProductFilters from './components/ProductFilters.vue'
 import StoreHeader from './components/StoreHeader.vue'
 import { useCustomerSession } from './composables/useCustomerSession'
 import { useShoppingCart } from './composables/useShoppingCart'
-import { PRODUCTS } from './data/products'
-import type { LoginPayload, ProductCategory } from './types/storeTypes'
+import { fetchProducts } from './services/productsService'
+import type { LoginPayload, Product, ProductCategory } from './types/storeTypes'
 
 const selectedCategory = ref<ProductCategory | 'Todos'>('Todos')
 const searchTerm = ref('')
@@ -16,6 +16,9 @@ const isCartOpen = ref(false)
 const isLoginOpen = ref(false)
 const checkoutFeedback = ref('')
 const loginNotice = ref('')
+const products = ref<Product[]>([])
+const isLoadingProducts = ref(true)
+const productsError = ref('')
 
 const {
   cartLines,
@@ -30,13 +33,13 @@ const {
 const { customerSession, loginError, login, logout } = useCustomerSession()
 
 const categories = computed<ProductCategory[]>(() => {
-  return Array.from(new Set(PRODUCTS.map((product) => product.category)))
+  return Array.from(new Set(products.value.map((product) => product.category)))
 })
 
 const filteredProducts = computed(() => {
   const normalizedSearchTerm = searchTerm.value.trim().toLowerCase()
 
-  return PRODUCTS.filter((product) => {
+  return products.value.filter((product) => {
     const matchesCategory =
       selectedCategory.value === 'Todos' || product.category === selectedCategory.value
 
@@ -49,8 +52,27 @@ const filteredProducts = computed(() => {
   })
 })
 
-function addProductToCart(productId: number) {
-  const product = PRODUCTS.find((availableProduct) => availableProduct.id === productId)
+const featuredProduct = computed(() => {
+  return products.value.find((product) => product.id === 'smartwatch-core-fit') ?? products.value[0]
+})
+
+onMounted(loadProducts)
+
+async function loadProducts() {
+  isLoadingProducts.value = true
+  productsError.value = ''
+
+  try {
+    products.value = await fetchProducts()
+  } catch {
+    productsError.value = 'Nao foi possivel carregar os produtos. Verifique se a API esta rodando.'
+  } finally {
+    isLoadingProducts.value = false
+  }
+}
+
+function addProductToCart(productId: string) {
+  const product = products.value.find((availableProduct) => availableProduct.id === productId)
 
   if (!product) {
     return
@@ -62,11 +84,11 @@ function addProductToCart(productId: number) {
   loginNotice.value = ''
 }
 
-function increaseProductQuantity(productId: number, currentQuantity: number) {
+function increaseProductQuantity(productId: string, currentQuantity: number) {
   updateQuantity(productId, currentQuantity + 1)
 }
 
-function decreaseProductQuantity(productId: number, currentQuantity: number) {
+function decreaseProductQuantity(productId: string, currentQuantity: number) {
   updateQuantity(productId, currentQuantity - 1)
 }
 
@@ -124,14 +146,14 @@ function closeLoginPanel() {
           <a href="#catalogo">Ver produtos</a>
         </div>
 
-        <div class="hero-showcase" aria-label="Produto em destaque">
+        <div v-if="featuredProduct" class="hero-showcase" aria-label="Produto em destaque">
           <img
-            src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=1100&q=80"
-            alt="Smartwatch em destaque"
+            :src="featuredProduct.imageUrl"
+            :alt="`${featuredProduct.name} em destaque`"
           />
           <div class="showcase-price">
             <span>Destaque</span>
-            <strong>Smartwatch Core Fit</strong>
+            <strong>{{ featuredProduct.name }}</strong>
           </div>
         </div>
       </section>
@@ -154,6 +176,10 @@ function closeLoginPanel() {
         />
 
         <p v-if="checkoutFeedback" class="feedback-message" role="status">{{ checkoutFeedback }}</p>
+        <p v-if="productsError" class="error-message" role="alert">{{ productsError }}</p>
+        <p v-else-if="isLoadingProducts" class="loading-message" role="status">
+          Carregando produtos...
+        </p>
 
         <div v-if="filteredProducts.length" class="product-grid">
           <ProductCard
@@ -164,7 +190,7 @@ function closeLoginPanel() {
           />
         </div>
 
-        <div v-else class="empty-products">
+        <div v-else-if="!isLoadingProducts && !productsError" class="empty-products">
           <h3>Nenhum produto encontrado</h3>
           <p>Ajuste a busca ou escolha outra categoria.</p>
         </div>
@@ -225,7 +251,9 @@ main {
 .eyebrow,
 .hero-copy,
 .section-heading p,
-.empty-products p {
+.empty-products p,
+.loading-message,
+.error-message {
   margin: 0;
 }
 
@@ -338,6 +366,23 @@ h1 {
   background: #ecfdf3;
   color: #027a48;
   font-weight: 700;
+}
+
+.loading-message,
+.error-message {
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-weight: 700;
+}
+
+.loading-message {
+  background: #eef4ff;
+  color: #1d4ed8;
+}
+
+.error-message {
+  background: #fef2f2;
+  color: #b91c1c;
 }
 
 .product-grid {

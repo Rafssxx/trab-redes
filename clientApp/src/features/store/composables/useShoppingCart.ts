@@ -26,7 +26,7 @@ export function useShoppingCart() {
     cartLines.value.push({ product, quantity: 1 })
   }
 
-  function updateQuantity(productId: number, nextQuantity: number) {
+  function updateQuantity(productId: string, nextQuantity: number) {
     if (nextQuantity <= 0) {
       removeProduct(productId)
       return
@@ -41,7 +41,7 @@ export function useShoppingCart() {
     cartLine.quantity = nextQuantity
   }
 
-  function removeProduct(productId: number) {
+  function removeProduct(productId: string) {
     cartLines.value = cartLines.value.filter((cartLine) => cartLine.product.id !== productId)
   }
 

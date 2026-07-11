@@ -3,6 +3,9 @@ venv/
 __pycache__/
 *.pyc
 .env
+loja.sqlite3
+loja.sqlite3-shm
+loja.sqlite3-wal
 results/*.csv
 .DS_Store
 .agents

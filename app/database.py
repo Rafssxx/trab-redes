@@ -28,7 +28,9 @@ def inicializar_banco() -> None:
                 categoria TEXT NOT NULL,
                 preco REAL NOT NULL CHECK (preco > 0),
                 estoque INTEGER NOT NULL CHECK (estoque >= 0),
-                descricao TEXT
+                descricao TEXT,
+                imagem_url TEXT,
+                avaliacao REAL NOT NULL DEFAULT 0 CHECK (avaliacao >= 0 AND avaliacao <= 5)
             );
 
             CREATE TABLE IF NOT EXISTS clientes (
@@ -40,3 +42,27 @@ def inicializar_banco() -> None:
             );
             """
         )
+        _garantir_coluna(conexao, "produtos", "imagem_url", "TEXT")
+        _garantir_coluna(
+            conexao,
+            "produtos",
+            "avaliacao",
+            "REAL NOT NULL DEFAULT 0 CHECK (avaliacao >= 0 AND avaliacao <= 5)",
+        )
+
+
+def _garantir_coluna(
+    conexao: sqlite3.Connection,
+    tabela: str,
+    coluna: str,
+    definicao: str,
+) -> None:
+    colunas = {
+        linha["name"]
+        for linha in conexao.execute(f"PRAGMA table_info({tabela})").fetchall()
+    }
+
+    if coluna in colunas:
+        return
+
+    conexao.execute(f"ALTER TABLE {tabela} ADD COLUMN {coluna} {definicao}")

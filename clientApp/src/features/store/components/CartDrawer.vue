@@ -10,9 +10,9 @@ defineProps<{
 
 defineEmits<{
   close: []
-  increase: [productId: number, currentQuantity: number]
-  decrease: [productId: number, currentQuantity: number]
-  remove: [productId: number]
+  increase: [productId: string, currentQuantity: number]
+  decrease: [productId: string, currentQuantity: number]
+  remove: [productId: string]
   checkout: []
 }>()
 
@@ -40,7 +40,12 @@ const currencyFormatter = new Intl.NumberFormat('pt-BR', {
 
         <div v-if="cartLines.length" class="cart-list">
           <article v-for="cartLine in cartLines" :key="cartLine.product.id" class="cart-line">
-            <img :src="cartLine.product.imageUrl" :alt="cartLine.product.name" />
+            <img
+              v-if="cartLine.product.imageUrl"
+              :src="cartLine.product.imageUrl"
+              :alt="cartLine.product.name"
+            />
+            <div v-else class="cart-line-image-placeholder" aria-hidden="true"></div>
 
             <div class="cart-line-content">
               <div>
@@ -180,6 +185,13 @@ const currencyFormatter = new Intl.NumberFormat('pt-BR', {
   height: 84px;
   border-radius: 6px;
   object-fit: cover;
+}
+
+.cart-line-image-placeholder {
+  width: 84px;
+  height: 84px;
+  border-radius: 6px;
+  background: #eef0f4;
 }
 
 .cart-line-content {

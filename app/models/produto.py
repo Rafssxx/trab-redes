@@ -11,6 +11,8 @@ class ProdutoBase(BaseModel):
     preco: float = Field(..., gt=0, example=149.90)
     estoque: int = Field(..., ge=0, example=25)
     descricao: Optional[str] = Field(default=None, example="Mouse optico USB com RGB")
+    imagem_url: Optional[str] = Field(default=None, example="https://exemplo.com/mouse.jpg")
+    avaliacao: float = Field(default=0, ge=0, le=5, example=4.8)
 
 
 class ProdutoCriar(ProdutoBase):
@@ -23,6 +25,8 @@ class ProdutoAtualizar(BaseModel):
     preco: Optional[float] = Field(default=None, gt=0)
     estoque: Optional[int] = Field(default=None, ge=0)
     descricao: Optional[str] = None
+    imagem_url: Optional[str] = None
+    avaliacao: Optional[float] = Field(default=None, ge=0, le=5)
 
 
 class Produto(ProdutoBase):

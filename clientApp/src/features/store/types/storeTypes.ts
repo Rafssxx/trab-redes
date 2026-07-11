@@ -1,7 +1,7 @@
-export type ProductCategory = 'Eletronicos' | 'Casa' | 'Moda' | 'Esporte'
+export type ProductCategory = string
 
 export interface Product {
-  id: number
+  id: string
   name: string
   category: ProductCategory
   description: string

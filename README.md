@@ -74,8 +74,14 @@ A API permite:
 - FastAPI
 - Uvicorn
 - Requests
+- SQLite
+- Vue 3
+- Vite
+- TypeScript
 
 ## 6. Como executar o projeto
+
+### 6.1. Preparar o backend
 
 Crie um ambiente virtual:
 
@@ -101,6 +107,14 @@ Instale as dependências:
 pip install -r requirements.txt
 ```
 
+Inicialize o banco e cadastre os produtos da loja:
+
+```bash
+python -m app.seed
+```
+
+O seed popula a tabela `produtos` no SQLite com produtos reais para a vitrine, incluindo preço, estoque, avaliação e `imagem_url` compatível com cada produto cadastrado. O comando é idempotente: se for executado novamente, atualiza os produtos do seed em vez de duplicá-los.
+
 Execute a API:
 
 ```bash
@@ -117,6 +131,56 @@ Acesse a documentação automática em:
 
 ```txt
 http://127.0.0.1:8000/docs
+```
+
+### 6.2. Preparar o frontend
+
+Em outro terminal, acesse a pasta do frontend:
+
+```bash
+cd clientApp
+```
+
+Instale as dependências:
+
+```bash
+npm install
+```
+
+Execute a aplicação web:
+
+```bash
+npm run dev
+```
+
+Acesse a vitrine em:
+
+```txt
+http://localhost:5173
+```
+
+Por padrão, o frontend consome a API em `http://127.0.0.1:8000`. Para usar outra URL, crie um arquivo `clientApp/.env` com:
+
+```env
+VITE_API_URL=http://127.0.0.1:8001
+```
+
+### 6.3. Fluxo completo recomendado
+
+```bash
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+python -m app.seed
+uvicorn app.main:app --reload
+```
+
+Em outro terminal:
+
+```bash
+cd clientApp
+npm install
+npm run dev
 ```
 
 ## 7. Rotas da API
@@ -151,7 +215,9 @@ Exemplo de corpo JSON:
   "categoria": "Informática",
   "preco": 3500.00,
   "estoque": 10,
-  "descricao": "Notebook para uso profissional"
+  "descricao": "Notebook para uso profissional",
+  "imagem_url": "https://exemplo.com/notebook.jpg",
+  "avaliacao": 4.8
 }
 ```
 
@@ -209,7 +275,29 @@ Resposta esperada:
 }
 ```
 
-## 8. Como testar o protocolo HTTP
+## 8. Como testar o projeto
+
+### Testar a API e o seed
+
+Depois de executar o seed e iniciar a API, consulte os produtos:
+
+```bash
+curl http://127.0.0.1:8000/produtos
+```
+
+A resposta deve trazer os produtos cadastrados no SQLite com `imagem_url` e `avaliacao`.
+
+### Testar o frontend
+
+Com a API e o Vite rodando, abra:
+
+```txt
+http://localhost:5173
+```
+
+A vitrine deve carregar os produtos pela rota `GET /produtos`. Se a API estiver desligada, a tela exibirá uma mensagem de erro no catálogo.
+
+### Testar o protocolo HTTP
 
 Com a API em execução, rode o script de simulação:
 
